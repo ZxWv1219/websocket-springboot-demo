@@ -8,17 +8,22 @@ import org.springframework.stereotype.Component;
 
 /**
  * 处理订阅redis的消息
+ *
  * @author Zx
  * @date 2020/7/3 10:31
  * @modified By:
  */
 @Component
 public class RedisReceiver {
-    @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
+    public RedisReceiver(SimpMessagingTemplate simpMessagingTemplate) {
+        this.simpMessagingTemplate = simpMessagingTemplate;
+    }
 
     /**
      * 处理一对一消息
+     *
      * @param message 消息队列中的消息
      */
     public void sendMsg(String message) {
@@ -29,9 +34,10 @@ public class RedisReceiver {
 
     /**
      * 处理广播消息
+     *
      * @param message
      */
-    public void sendAllMsg(String message){
+    public void sendAllMsg(String message) {
         System.out.println(message);
         simpMessagingTemplate.convertAndSend("/topic/sys", message);
     }

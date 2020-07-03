@@ -38,7 +38,7 @@ public class ImController {
         String uid = principal.getName();
         //当前发送信息的uid
         msg.setUid(uid);
-        System.out.println(uid + ":" + msg);
+        System.out.println(uid);
         //获取在线的用户列表
         Set<String> onlineUsers = stringRedisTemplate.opsForSet().members("online");
         //判断发送的用户是否在线
