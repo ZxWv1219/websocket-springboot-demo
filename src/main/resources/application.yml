@@ -1,0 +1,12 @@
+#logging:
+#  level:
+#    root: error
+spring:
+  redis:
+    host: 10.15.3.32
+    port: 6379
+    database: 1
+    password:
+    timeout: 5000ms
+server:
+  port: 8080
