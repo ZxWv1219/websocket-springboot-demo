@@ -1,9 +1,11 @@
 package com.spirngboot.websocket.demo.config;
 
 import com.spirngboot.websocket.demo.handler.MyHandshakeHandler;
+import com.spirngboot.websocket.demo.handler.MyHandshakeInterceptor;
 import com.spirngboot.websocket.demo.handler.MyWebSocketHandler;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -23,10 +25,12 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final MyWebSocketHandler myWebSocketHandler;
     private final MyHandshakeHandler myHandshakeHandler;
+//    private final MyHandshakeInterceptor myHandshakeInterceptor;
 
     public WebSocketConfig(MyWebSocketHandler myWebSocketHandler, MyHandshakeHandler myHandshakeHandler) {
         this.myWebSocketHandler = myWebSocketHandler;
         this.myHandshakeHandler = myHandshakeHandler;
+//        this.myHandshakeInterceptor = myHandshakeInterceptor;
     }
 
     @Override
@@ -44,9 +48,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         //客户端和服务端进行连接的endpoint
         //如果使用移动端开发app，需要/im/conn/websocket连接
         stompEndpointRegistry.addEndpoint("/im/conn")
+//                .addInterceptors(myHandshakeInterceptor)////添加 websocket握手拦截器 在些做用户认证
                 .setHandshakeHandler(myHandshakeHandler)//设置连接校验
                 .setAllowedOrigins("*")//跨域
-                .withSockJS();//开启sockjs
+                .withSockJS();//开启sockJs
     }
 
     @Override

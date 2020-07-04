@@ -1,12 +1,15 @@
 package com.spirngboot.websocket.demo.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.spirngboot.websocket.demo.handler.MyWebSocketHandler;
 import com.spirngboot.websocket.demo.message.SendMsg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -25,6 +28,13 @@ public class ImController {
         this.stringRedisTemplate = stringRedisTemplate;
     }
 
+
+    @PostMapping(value = "/test")
+    public Object build(@RequestBody String param) throws Exception {
+        System.out.println(param);
+        return param;
+    }
+
     /**
      * 发送消息,一对一
      * Principal为连接websocket校验时返回的，可以直接在参数中使用
@@ -40,7 +50,7 @@ public class ImController {
         msg.setUid(uid);
         System.out.println(uid);
         //获取在线的用户列表
-        Set<String> onlineUsers = stringRedisTemplate.opsForSet().members("online");
+        Set<String> onlineUsers = stringRedisTemplate.opsForSet().members(MyWebSocketHandler.ONLINE_KEY);
         //判断发送的用户是否在线
         if (onlineUsers.contains(msg.getToUid())) {
             //如果用户在线，则将消息发送到redis消息队列im-topic主题中，所有连接同一个redis的应用并订阅im-topic主题都会收到这条消息。

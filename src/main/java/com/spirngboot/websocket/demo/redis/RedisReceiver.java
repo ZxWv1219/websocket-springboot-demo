@@ -15,11 +15,13 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RedisReceiver {
-    private final SimpMessagingTemplate simpMessagingTemplate;
+//    private final SimpMessagingTemplate simpMessagingTemplate;
+    @Autowired
+    SimpMessagingTemplate simpMessagingTemplate;
 
-    public RedisReceiver(SimpMessagingTemplate simpMessagingTemplate) {
-        this.simpMessagingTemplate = simpMessagingTemplate;
-    }
+//    public RedisReceiver(SimpMessagingTemplate simpMessagingTemplate) {
+//        this.simpMessagingTemplate = simpMessagingTemplate;
+//    }
 
     /**
      * 处理一对一消息

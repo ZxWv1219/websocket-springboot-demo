@@ -3,7 +3,8 @@
 #    root: error
 spring:
   redis:
-    host: 10.15.3.32
+    #host: 10.15.3.32
+    host: 172.16.108.202
     port: 6379
     database: 1
     password:
