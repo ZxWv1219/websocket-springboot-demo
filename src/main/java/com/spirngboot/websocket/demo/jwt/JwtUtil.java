@@ -1,66 +1,102 @@
 package com.spirngboot.websocket.demo.jwt;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.xml.bind.DatatypeConverter;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Zx
  * @date 2020/7/6 16:54
  * @modified By:
  */
+@Component
 public class JwtUtil {
 
+    private final JwtConfig config;
+
+    public JwtUtil(JwtConfig config) {
+        this.config = config;
+    }
+
 
     /**
-     * 过期时间为一天
-     * TODO 正式上线更换为15分钟
-     */
-    private static final long EXPIRE_TIME = 24 * 60 * 60 * 1000;
-
-    /**
-     * token私钥
-     */
-    private static final String TOKEN_SECRET = "joijsdfjlsjfljfljl5135313135";
-
-    /**
-     * 生成签名,15分钟后过期
+     * 生成token
      *
-     * @param username
      * @param userId
      * @return
      */
-    public static String sign(String username, String userId) {
+    public String createToken(String userId) {
+        Date nowDate = new Date();
         //过期时间
-        Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
-        //私钥及加密算法
-        Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
-        //设置头信息
-        HashMap<String, Object> header = new HashMap<>(2);
-        header.put("typ", "JWT");
-        header.put("alg", "HS256");
-        //附带username和userID生成签名
-        return JWT.create().withHeader(header).withClaim("loginName", username)
-                .withClaim("userId", userId).withExpiresAt(date).sign(algorithm);
+        Date expireDate = new Date(nowDate.getTime() + config.getExpire() * 60 * 1000);
+        //Map<String, Object> map = new HashMap<>();
+        return Jwts.builder()
+                .setHeaderParam("typ", "JWT")
+//                .setClaims(map)//存放自定义数据
+                .claim("zx", "存放自定义数据")//存放自定义数据
+                .setSubject(userId)// 代表这个JWT的主体，即它的所有人
+                .setIssuedAt(nowDate) //是一个时间戳，代表这个JWT的签发时间；
+                .setExpiration(expireDate)//过期时间ms
+                .signWith(SignatureAlgorithm.HS512, config.getSecret())
+                .compact();
     }
 
 
-    public static boolean verity(String token) {
+    /**
+     * 解析jwt
+     *
+     * @param jsonWebToken
+     * @param base64Security
+     * @return
+     */
+    public static Claims parseJWT(String jsonWebToken, String base64Security) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
-            JWTVerifier verifier = JWT.require(algorithm).build();
-            DecodedJWT jwt = verifier.verify(token);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        } catch (JWTVerificationException e) {
-            return false;
+            Claims claims = Jwts.parser()
+                    .setSigningKey(DatatypeConverter.parseBase64Binary(base64Security))
+                    .parseClaimsJws(jsonWebToken).getBody();
+            return claims;
+        } catch (ExpiredJwtException eje) {
+            //TODO 抛出异常
+            System.out.println("===== Token过期 =====");
+            throw eje;
+        } catch (Exception e) {
+            //TODO 抛出异常
+            System.out.println("===== token解析异常 =====");
+            throw e;
         }
-
     }
+
+    /**
+     * 从token中获取用户名
+     *
+     * @param token
+     * @return
+     */
+    public String getUserId(String token) {
+        return parseJWT(token, config.getSecret()).getSubject();
+    }
+
+    /**
+     * 是否已过期
+     *
+     * @param token
+     * @return
+     */
+    public boolean isExpiration(String token) {
+        return parseJWT(token, config.getSecret()).getExpiration().before(new Date());
+    }
+
+    public String getValue(String token, String key) {
+        return parseJWT(token, config.getSecret()).get(key, String.class);
+    }
+
 }

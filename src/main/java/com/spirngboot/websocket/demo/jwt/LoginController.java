@@ -21,12 +21,16 @@ import java.util.Map;
 @RequestMapping
 public class LoginController {
     private final IUserService userService;
+    private final JwtUtil jwtUtil;
+    private final JwtConfig config;
 
-    public LoginController(IUserService userService) {
+    public LoginController(IUserService userService, JwtUtil jwtUtil, JwtConfig config) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
+        this.config = config;
     }
 
-    @PostMapping("login")
+    @PostMapping("/login")
     public ResponseResult login(@RequestBody Map<String, String> map) {
         String loginName = map.get("loginName");
         String passWord = map.get("passWord");
@@ -37,7 +41,7 @@ public class LoginController {
             User user = userService.getUser(loginName);
             if (user != null) {
                 //返回token
-                String token = JwtUtil.sign(loginName, passWord);
+                String token = jwtUtil.createToken(loginName);
                 if (token != null) {
                     return ResponseResult.success("成功", token);
                 }
@@ -47,17 +51,9 @@ public class LoginController {
     }
 
     @PostMapping("getUser")
-    public ResponseResult getUserInfo(HttpServletRequest request, @RequestBody Map<String, String> map) {
-        String loginName = map.get("loginName");
-        String token = request.getHeader("token");
-        boolean verity = JwtUtil.verity(token);
-        if (verity) {
-            User user = userService.getUser(loginName);
-            if (user != null) {
-                return ResponseResult.success("成功", JSONObject.toJSONString(user));
-            }
-        }
-        return ResponseResult.fail();
+    public String getUserInfo(HttpServletRequest request, @RequestBody Map<String, String> map) {
+        String token = request.getHeader(config.getHeader());
+//        return ResponseResult.success(jwtUtil.getUserId(token));
+        return jwtUtil.getValue(token, "zx");
     }
-
 }
